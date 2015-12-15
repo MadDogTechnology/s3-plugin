@@ -34,9 +34,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public final class S3BucketPublisher extends Recorder implements Describable<Publisher> {
-    
+
     private static final Logger log = Logger.getLogger(S3BucketPublisher.class.getName());
-    
+
     private String profileName;
     @Extension
     public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
@@ -96,7 +96,7 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
         return getProfile(profileName);
     }
 
-    public static S3Profile getProfile(String profileName) {        
+    public static S3Profile getProfile(String profileName) {
         S3Profile[] profiles = DESCRIPTOR.getProfiles();
 
         if (profileName == null && profiles.length > 0)
@@ -114,7 +114,7 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
     public Collection<? extends Action> getProjectActions(AbstractProject<?, ?> project) {
         return ImmutableList.of(new S3ArtifactsProjectAction(project));
     }
-       
+
     protected void log(final PrintStream logger, final String message) {
         logger.println(StringUtils.defaultString(getDescriptor().getDisplayName()) + " " + message);
     }
@@ -126,7 +126,7 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
             throws InterruptedException, IOException {
 
         final boolean buildFailed = build.getResult() == Result.FAILURE;
-        
+
         S3Profile profile = getProfile();
         if (profile == null) {
             log(listener.getLogger(), "No S3 profile is configured.");
@@ -138,15 +138,15 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
             Map<String, String> envVars = build.getEnvironment(listener);
             Map<String,String> record = Maps.newHashMap();
             List<FingerprintRecord> artifacts = Lists.newArrayList();
-            
+
             for (Entry entry : entries) {
-                
+
                 if (entry.noUploadOnFailure && buildFailed) {
                     // build failed. don't post
                     log(listener.getLogger(), "Skipping publishing on S3 because build failed");
                     continue;
                 }
-                
+
                 String expanded = Util.replaceMacro(entry.sourceFile, envVars);
                 FilePath ws = build.getWorkspace();
                 FilePath[] paths = ws.list(expanded);
@@ -188,14 +188,14 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
                 }
 
                 List<FingerprintRecord> records = Lists.newArrayList();
-                
+
                 for (FilePath src : paths) {
-                    log(listener.getLogger(), "bucket=" + bucket + ", file=" + src.getName() + " region=" + selRegion + ", upload from slave=" + entry.uploadFromSlave + " managed="+ entry.managedArtifacts + " , server encryption "+entry.useServerSideEncryption);
+                    log(listener.getLogger(), "bucket=" + bucket + ", file=" + src.getName() + " destination: " + entry.destinationFile + " region=" + selRegion + ", upload from slave=" + entry.uploadFromSlave + " managed="+ entry.managedArtifacts + " , server encryption "+entry.useServerSideEncryption);
                     records.add(profile.upload(build, listener, bucket, src, searchPathLength, escapedMetadata, storageClass, selRegion, entry.uploadFromSlave, entry.managedArtifacts, entry.useServerSideEncryption, entry.flatten, entry.gzipFiles));
                 }
                 if (entry.managedArtifacts) {
                     artifacts.addAll(records);
-    
+
                     for (FingerprintRecord r : records) {
                       Fingerprint fp = r.addRecord(build);
                       if(fp==null) {
@@ -252,7 +252,7 @@ public final class S3BucketPublisher extends Recorder implements Describable<Pub
             }
         }
     }
-   
+
     public BuildStepMonitor getRequiredMonitorService() {
         return dontWaitForConcurrentBuildCompletion ? BuildStepMonitor.NONE : BuildStepMonitor.STEP;
     }

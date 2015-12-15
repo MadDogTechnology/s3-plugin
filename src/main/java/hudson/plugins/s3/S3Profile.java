@@ -167,18 +167,22 @@ public class S3Profile {
         getClient().listBuckets();
     }
 
-    public FingerprintRecord upload(AbstractBuild<?,?> build, final BuildListener listener, String bucketName, FilePath filePath, int searchPathLength, Map<String, String> userMetadata,
-            String storageClass, String selregion, boolean uploadFromSlave, boolean managedArtifacts, boolean useServerSideEncryption, boolean flatten, boolean gzipFiles) throws IOException, InterruptedException {
+    public FingerprintRecord upload(AbstractBuild<?,?> build, final BuildListener listener, String bucketName, String destinationFile, FilePath filePath, int searchPathLength, List<MetadataPair> userMetadata,
+            String storageClass, String selregion, boolean uploadFromSlave, boolean managedArtifacts,boolean useServerSideEncryption, boolean flatten) throws IOException, InterruptedException {
         if (filePath.isDirectory()) {
             throw new IOException(filePath + " is a directory");
         }
 
         String fileName = null;
-        if (flatten) {
-            fileName = filePath.getName();
+        if (destinationFile == null){
+          if (flatten) {
+              fileName = filePath.getName();
+          } else {
+              String relativeFileName = filePath.getRemote();
+              fileName = relativeFileName.substring(searchPathLength);
+          }
         } else {
-            String relativeFileName = filePath.getRemote();
-            fileName = relativeFileName.substring(searchPathLength);
+          fileName = destinationFile;
         }
 
         Destination dest = new Destination(bucketName, fileName);
@@ -208,7 +212,7 @@ public class S3Profile {
     }
 
     public List<String> list(Run build, String bucket, String expandedFilter) {
-        AmazonS3Client s3client = getClient();        
+        AmazonS3Client s3client = getClient();
 
         String buildName = build.getDisplayName();
         int buildID = build.getNumber();
@@ -219,7 +223,7 @@ public class S3Profile {
         .withPrefix(dest.objectName);
 
         List<String> files = Lists.newArrayList();
-        
+
         ObjectListing objectListing;
         do {
           objectListing = s3client.listObjects(listObjectsRequest);
@@ -228,7 +232,7 @@ public class S3Profile {
             files.add(req.getKey());
           }
           listObjectsRequest.setMarker(objectListing.getNextMarker());
-        } while (objectListing.isTruncated());        
+        } while (objectListing.isTruncated());
         return files;
       }
 
@@ -239,7 +243,7 @@ public class S3Profile {
 
           FilenameSelector selector = new FilenameSelector();
           selector.setName(expandedFilter);
-          
+
           List<FingerprintRecord> fingerprints = Lists.newArrayList();
           for(FingerprintRecord record : artifacts) {
               S3Artifact artifact = record.artifact;
@@ -285,7 +289,7 @@ public class S3Profile {
           ResponseHeaderOverrides headers = new ResponseHeaderOverrides();
           // let the browser use the last part of the name, not the full path
           // when saving.
-          String fileName = (new File(dest.objectName)).getName().trim(); 
+          String fileName = (new File(dest.objectName)).getName().trim();
           headers.setContentDisposition("attachment; filename=\"" + fileName + "\"");
           request.setResponseHeaders(headers);
           URL url = getClient().generatePresignedUrl(request);

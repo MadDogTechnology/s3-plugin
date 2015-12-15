@@ -20,6 +20,13 @@ public final class Entry implements Describable<Entry> {
      * Can contain macros and wildcards.
      */
     public String sourceFile;
+
+    /**
+     * File name in the S3
+     * This is optional
+     */
+    public String destinationFile;
+
     /**
      * options for x-amz-storage-class can be STANDARD or REDUCED_REDUNDANCY
      */
@@ -36,7 +43,7 @@ public final class Entry implements Describable<Entry> {
      * Stores the Region Value
      */
     public String selectedRegion;
-    
+
     /**
      * Do not publish the artifacts when build fails
      */
@@ -51,7 +58,7 @@ public final class Entry implements Describable<Entry> {
      * Let Jenkins manage the S3 uploaded artifacts
      */
     public boolean managedArtifacts;
-    
+
     /**
      * Use S3 server side encryption when uploading the artifacts
      */
@@ -74,11 +81,12 @@ public final class Entry implements Describable<Entry> {
     public List<MetadataPair> userMetadata;
 
     @DataBoundConstructor
-    public Entry(String bucket, String sourceFile, String storageClass, String selectedRegion,
+    public Entry(String bucket, String sourceFile, String destinationFile, String storageClass, String selectedRegion,
                  boolean noUploadOnFailure, boolean uploadFromSlave, boolean managedArtifacts,
-                 boolean useServerSideEncryption, boolean flatten, boolean gzipFiles, List<MetadataPair> userMetadata) {
+                 boolean useServerSideEncryption, boolean flatten) {
         this.bucket = bucket;
         this.sourceFile = sourceFile;
+        this.destinationFile = destinationFile;
         this.storageClass = storageClass;
         this.selectedRegion = selectedRegion;
         this.noUploadOnFailure = noUploadOnFailure;
