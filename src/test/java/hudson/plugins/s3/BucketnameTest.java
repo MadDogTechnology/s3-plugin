@@ -9,22 +9,22 @@ public class BucketnameTest {
   @Test
   public void testAnythingAfterSlashInBucketNameIsPrependedToObjectName() {
 
-    // Assertions based on the behaviour of toString is maybe fragile but I think 
+    // Assertions based on the behaviour of toString is maybe fragile but I think
     // reasonably readable.
-    
-    assertEquals( "Destination [bucketName=my-bucket-name, objectName=test.txt]", 
+
+    assertEquals( "Destination [bucketName=my-bucket-name, objectName=test.txt]",
         new Destination("my-bucket-name", "test.txt").toString() );
-    
-    assertEquals( "Destination [bucketName=my-bucket-name, objectName=foo/test.txt]", 
+
+    assertEquals( "Destination [bucketName=my-bucket-name, objectName=foo/test.txt]",
         new Destination("my-bucket-name/foo", "test.txt").toString() );
-    
-    assertEquals( "Destination [bucketName=my-bucket-name, objectName=foo/baz/test.txt]", 
+
+    assertEquals( "Destination [bucketName=my-bucket-name, objectName=foo/baz/test.txt]",
         new Destination("my-bucket-name/foo/baz", "test.txt").toString() );
 
     // Unclear if this is the desired behaviour or not:
-    assertEquals( "Destination [bucketName=my-bucket-name, objectName=/test.txt]", 
+    assertEquals( "Destination [bucketName=my-bucket-name, objectName=/test.txt]",
         new Destination("my-bucket-name/", "test.txt").toString() );
-  
+
   }
 
   @Test

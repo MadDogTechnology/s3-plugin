@@ -83,7 +83,7 @@ public final class Entry implements Describable<Entry> {
     @DataBoundConstructor
     public Entry(String bucket, String sourceFile, String destinationFile, String storageClass, String selectedRegion,
                  boolean noUploadOnFailure, boolean uploadFromSlave, boolean managedArtifacts,
-                 boolean useServerSideEncryption, boolean flatten) {
+                 boolean useServerSideEncryption, boolean flatten, boolean gzipFiles, List<MetadataPair> userMetadata) {
         this.bucket = bucket;
         this.sourceFile = sourceFile;
         this.destinationFile = destinationFile;
